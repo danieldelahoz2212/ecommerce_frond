@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapProducts } from "../components/MapProducts";
 import { AddProduct } from "../components/AddProduct";
 import axios from "axios";
@@ -18,6 +19,15 @@ export const Products: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+  }, [navigate]);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);

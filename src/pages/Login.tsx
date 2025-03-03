@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Notification } from "../components/Notifi";
 import { useNavigate } from "react-router-dom";
 
@@ -13,25 +13,38 @@ export const Login = () => {
   } | null>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/perfil");
+    }
+  }, [navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("http://localhost:8000/api/users/login", {
-        email,
-        password,
-      });
+      const { data } = await axios.post(
+        "http://localhost:8000/api/users/login",
+        {
+          email,
+          password,
+        }
+      );
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setNotifi({ msg: "Inicio de sesión exitoso", type: "success" });
 
-      setTimeout(() => navigate("/Perfil"), 1000);
+      setTimeout(() => {
+        window.location.reload();
+        navigate("/perfil");
+      }, 1000);
 
       setEmail("");
       setPassword("");
     } catch (error) {
       console.error(error);
-      setNotifi({msg:"Error al iniciar sesión", type: "error" });
+      setNotifi({ msg: "Error al iniciar sesión", type: "error" });
     }
   };
 
@@ -43,7 +56,7 @@ export const Login = () => {
         <form className="container-fluid" onSubmit={handleSubmit}>
           <div className="mb-3">
             <input
-              type="text"
+              type="email"
               className="form-control"
               placeholder="Email"
               value={email}

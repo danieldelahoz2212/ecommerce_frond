@@ -17,20 +17,40 @@ interface Props {
   setEditingProduct: (product: Product | null) => void;
 }
 
-export const MapProducts: React.FC<Props> = ({ products, fetchProducts, setEditingProduct }) => {
+export const MapProducts: React.FC<Props> = ({
+  products,
+  fetchProducts,
+  setEditingProduct,
+}) => {
+  const [cart, setCart] = useState<Product[]>([]);
   const [loading, setLoading] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleAddToCart = (product: Product) => {
-    console.log("Añadiendo al carrito:", product);
+    setCart((prevCart) => {
+      const existingProduct = prevCart.find((item) => item.id === product.id);
+      if (existingProduct) {
+        return prevCart.map((item) =>
+          item.id === product.id ? { ...item, stock: item.stock + 1 } : item
+        );
+      }
+      return [...prevCart, { ...product, stock: 1 }];
+    });
+
+    localStorage.setItem(
+      "cart",
+      JSON.stringify([...cart, product])
+    );
+    console.log(product);
   };
 
   const handleDeleteProduct = async (id: number) => {
-    if (!window.confirm("¿Estás seguro de que quieres eliminar este producto?")) return;
+    if (!window.confirm("¿Estás seguro de que quieres eliminar este producto?"))
+      return;
 
     setLoading(id);
     setError(null);
-    
+
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No hay token disponible");
@@ -64,11 +84,18 @@ export const MapProducts: React.FC<Props> = ({ products, fetchProducts, setEditi
               />
               <div className="card-body text-center">
                 <h5 className="card-title">{product.name}</h5>
+                <p className="card-text">{product.description}</p>
                 <p className="card-text fw-bold">${product.price}</p>
-                <button className="btn btn-dark w-100 mb-2" onClick={() => handleAddToCart(product)}>
+                <button
+                  className="btn btn-dark w-100 mb-2"
+                  onClick={() => handleAddToCart(product)}
+                >
                   Añadir al carrito
                 </button>
-                <button className="btn btn-success w-100 mb-2" onClick={() => setEditingProduct(product)}>
+                <button
+                  className="btn btn-success w-100 mb-2"
+                  onClick={() => setEditingProduct(product)}
+                >
                   Editar
                 </button>
                 <button
