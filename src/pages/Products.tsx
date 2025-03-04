@@ -45,7 +45,7 @@ export const Products: React.FC = () => {
 
   const fetchUserRole = async (roleId: number, token: string) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/users/rol/${roleId}`, {
+      const response = await axios.get(`http://localhost:8000/api/rol/${roleId}`, {
         headers: { token },
       });
 
@@ -69,7 +69,7 @@ export const Products: React.FC = () => {
 
     try {
       const response = await axios.get("http://localhost:8000/api/products", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { token },
       });
 
       console.log("API Response:", response.data);

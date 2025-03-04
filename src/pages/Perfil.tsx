@@ -59,7 +59,7 @@ export const Perfil = () => {
     const fetchUserRole = async (roleId: number, token: string) => {
       try {
         const response = await fetch(
-          `http://localhost:8000/api/users/rol/${roleId}`,
+          `http://localhost:8000/api/rol/${roleId}`,
           {
             headers: { token },
           }

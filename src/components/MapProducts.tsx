@@ -102,13 +102,20 @@ export const MapProducts: React.FC<Props> = ({
               <div className="card-body text-center">
                 <h5 className="card-title">{product.name}</h5>
                 <p className="card-text">{product.description}</p>
+                <p className="card-text">Cantidad disponible: {product.stock}</p>
                 <p className="card-text fw-bold">${product.price}</p>
-                <button
-                  className="btn btn-dark w-100 mb-2"
-                  onClick={() => handleAddToCart(product)}
-                >
-                  Añadir al carrito
-                </button>
+                {product.stock > 0 ? (
+                  <button
+                    className="btn btn-dark w-100 mb-2"
+                    onClick={() => handleAddToCart(product)}
+                  >
+                    Añadir al carrito
+                  </button>
+                ) : (
+                  <button className="btn btn-secondary w-100 mb-2" disabled>
+                    Agotado
+                  </button>
+                )}
                 {(userRole === 1 || userRole === 3) && (
                   <>
                     <button

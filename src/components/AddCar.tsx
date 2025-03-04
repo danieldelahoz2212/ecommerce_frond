@@ -13,6 +13,16 @@ export const AddCar: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   const handleCheckout = async () => {
     const token = localStorage.getItem("token");
     if (!cart) {
@@ -25,11 +35,9 @@ export const AddCar: React.FC = () => {
 
     try {
       console.log("Contenido del carrito:", cart);
-      const response = await axios.post("http://localhost:8000/api/order", cart,
-        {
-            headers: { token },
-          }
-      );
+      const response = await axios.post("http://localhost:8000/api/order", cart, {
+        headers: { token },
+      });
       console.log("Pedido enviado:", response.data);
 
       localStorage.removeItem("cart");
