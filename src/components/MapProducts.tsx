@@ -9,39 +9,56 @@ interface Product {
   category: number;
   stock: number;
   img?: string;
+  amount?: number;
 }
 
 interface Props {
   products: Product[];
   fetchProducts: () => void;
   setEditingProduct: (product: Product | null) => void;
+  userRole: number | null;
 }
 
 export const MapProducts: React.FC<Props> = ({
   products,
   fetchProducts,
   setEditingProduct,
+  userRole,
 }) => {
-  const [cart, setCart] = useState<Product[]>([]);
+  const [, setCart] = useState<Product[]>([]);
   const [loading, setLoading] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleAddToCart = (product: Product) => {
     setCart((prevCart) => {
       const existingProduct = prevCart.find((item) => item.id === product.id);
-      if (existingProduct) {
-        return prevCart.map((item) =>
-          item.id === product.id ? { ...item, stock: item.stock + 1 } : item
-        );
-      }
-      return [...prevCart, { ...product, stock: 1 }];
-    });
 
-    localStorage.setItem(
-      "cart",
-      JSON.stringify([...cart, product])
-    );
-    console.log(product);
+      let updatedCart;
+      if (existingProduct) {
+        updatedCart = prevCart.map((item) =>
+          item.id === product.id ? { ...item, amount: (item.amount || 0) + 1 } : item
+        );
+      } else {
+        updatedCart = [...prevCart, { ...product, amount: 1 }];
+      }
+
+      const storedUser = localStorage.getItem("user");
+      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+      const idUser = parsedUser?.id || null;
+
+      const cartJSON = {
+        idUser,
+        products: updatedCart.map(({ id, price, amount }) => ({
+          id,
+          amount,
+          price,
+        })),
+        payment: "comprobante",
+      };
+
+      localStorage.setItem("cart", JSON.stringify(cartJSON));
+      return updatedCart;
+    });
   };
 
   const handleDeleteProduct = async (id: number) => {
@@ -92,19 +109,23 @@ export const MapProducts: React.FC<Props> = ({
                 >
                   Añadir al carrito
                 </button>
-                <button
-                  className="btn btn-success w-100 mb-2"
-                  onClick={() => setEditingProduct(product)}
-                >
-                  Editar
-                </button>
-                <button
-                  className="btn btn-danger w-100"
-                  onClick={() => handleDeleteProduct(product.id)}
-                  disabled={loading === product.id}
-                >
-                  {loading === product.id ? "Eliminando..." : "Eliminar"}
-                </button>
+                {(userRole === 1 || userRole === 3) && (
+                  <>
+                    <button
+                      className="btn btn-success w-100 mb-2"
+                      onClick={() => setEditingProduct(product)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="btn btn-danger w-100"
+                      onClick={() => handleDeleteProduct(product.id)}
+                      disabled={loading === product.id}
+                    >
+                      {loading === product.id ? "Eliminando..." : "Eliminar"}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

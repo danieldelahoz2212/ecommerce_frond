@@ -11,6 +11,7 @@ interface User {
 
 export const Perfil = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export const Perfil = () => {
           const parsedUser = JSON.parse(storedUser) as User;
           setUser(parsedUser);
 
+          fetchUserRole(parsedUser.rol, token);
           return;
         } catch (error) {
           console.error("Error al parsear el usuario almacenado:", error);
@@ -38,9 +40,7 @@ export const Perfil = () => {
 
       try {
         const response = await fetch(`http://localhost:8000/api/user`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { token },
         });
 
         if (!response.ok) throw new Error("Error al obtener datos");
@@ -48,9 +48,29 @@ export const Perfil = () => {
         const data = await response.json();
         setUser(data);
         localStorage.setItem("user", JSON.stringify(data));
+
+        fetchUserRole(data.rol, token);
       } catch (error) {
         console.error("Error al obtener perfil:", error);
         navigate("/login");
+      }
+    };
+
+    const fetchUserRole = async (roleId: number, token: string) => {
+      try {
+        const response = await fetch(
+          `http://localhost:8000/api/users/rol/${roleId}`,
+          {
+            headers: { token },
+          }
+        );
+
+        if (!response.ok) throw new Error("Error al obtener el rol");
+
+        const roleData = await response.json();
+        setUserRole(roleData.rol);
+      } catch (error) {
+        console.error("Error al obtener el rol del usuario:", error);
       }
     };
 
@@ -67,7 +87,10 @@ export const Perfil = () => {
 
   return (
     <div className="container d-flex justify-content-center align-items-center vh-100">
-      <div className="card p-4 shadow-lg" style={{ maxWidth: "500px", width: "100%" }}>
+      <div
+        className="card p-4 shadow-lg"
+        style={{ maxWidth: "500px", width: "100%" }}
+      >
         <h2 className="text-center mb-3">
           Perfil de {user.name} {user.lastName}
         </h2>
@@ -76,8 +99,12 @@ export const Perfil = () => {
         </p>
         <p>
           <strong>Rol:</strong>{" "}
-          <span className={`badge ${user.rol === 1 ? "bg-success" : "bg-secondary"}`}>
-            {user.rol === 1 ? "Administrador" : "Usuario"}
+          <span
+            className={`badge ${
+              userRole === "admin" ? "bg-success" : "bg-secondary"
+            }`}
+          >
+            {userRole ?? "Cargando..."}
           </span>
         </p>
         <div className="text-center mt-3">

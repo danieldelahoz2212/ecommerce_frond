@@ -17,11 +17,22 @@ export const MapCar: React.FC = () => {
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) throw new Error("No hay token disponible");
+        const storedUser = localStorage.getItem("user");
 
-        const response = await axios.get("http://localhost:8000/api/order", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        if (!token || !storedUser)
+          throw new Error("No hay token o usuario disponible");
+
+        const parsedUser = JSON.parse(storedUser);
+        const userId = parsedUser.id;
+
+        if (!userId) throw new Error("No se pudo obtener el ID del usuario");
+
+        const response = await axios.get(
+          `http://localhost:8000/api/order/${userId}`,
+          {
+            headers: { token },
+          }
+        );
 
         console.log("Respuesta del servidor:", response.data);
 
@@ -49,21 +60,26 @@ export const MapCar: React.FC = () => {
       {error && <div className="alert alert-danger">{error}</div>}
 
       <ul className="list-group">
-        {orders.map((order) => (
-          <li key={order.id} className="list-group-item">
-            <div className="d-flex justify-content-between">
-              <div>
-                <h5>Pedido #{order.id}</h5>
-                <p>Total: ${order.totalPrice}</p>
-                <p>
-                  Estado: {order.statusOrder === 1 ? "Pendiente" : "Completado"}
-                </p>
-                <p>Pago: {order.payment}</p>
+        {orders.length > 0 ? (
+          orders.map((order) => (
+            <li key={order.id} className="list-group-item">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5>Pedido #{order.id}</h5>
+                  <p>Total: ${order.totalPrice}</p>
+                  <p>
+                    Estado:{" "}
+                    {order.statusOrder === 1 ? "Pendiente" : "Completado"}
+                  </p>
+                  <p>Pago: {order.payment}</p>
+                </div>
+                <button className="btn btn-primary">Ver Detalles</button>
               </div>
-              <button className="btn btn-primary">Ver Detalles</button>
-            </div>
-          </li>
-        ))}
+            </li>
+          ))
+        ) : (
+          <p className="text-center text-muted">No tienes pedidos aún.</p>
+        )}
       </ul>
     </div>
   );

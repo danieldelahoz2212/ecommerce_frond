@@ -19,15 +19,42 @@ export const Products: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [userRoleId, setUserRoleId] = useState<number | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
+    const storedUser = localStorage.getItem("user");
+
+    if (!token || !storedUser) {
       navigate("/login");
       return;
     }
+
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      setUserRoleId(parsedUser.rol);
+      fetchUserRole(parsedUser.rol, token);
+    } catch (error) {
+      console.error("Error al parsear el usuario:", error);
+      setUserRoleId(null);
+      setUserRole(null);
+    }
   }, [navigate]);
+
+  const fetchUserRole = async (roleId: number, token: string) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/users/rol/${roleId}`, {
+        headers: { token },
+      });
+
+      setUserRole(response.data.rol);
+    } catch (error) {
+      console.error("Error al obtener el rol del usuario:", error);
+      setUserRole(null);
+    }
+  };
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -42,9 +69,7 @@ export const Products: React.FC = () => {
 
     try {
       const response = await axios.get("http://localhost:8000/api/products", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       console.log("API Response:", response.data);
@@ -64,11 +89,21 @@ export const Products: React.FC = () => {
   return (
     <div className="container mt-4">
       <h2 className="text-center mb-4 text-2xl font-bold">Productos</h2>
-      <AddProduct
-        onProductAdded={() => fetchProducts()}
-        editingProduct={editingProduct}
-        setEditingProduct={setEditingProduct}
-      />
+
+      {userRoleId !== null && (userRoleId === 1 || userRoleId === 3) && (
+        <AddProduct
+          onProductAdded={fetchProducts}
+          editingProduct={editingProduct}
+          setEditingProduct={setEditingProduct}
+        />
+      )}
+
+      <p className="text-center">
+        <strong>Rol:</strong>{" "}
+        <span className={`badge ${userRole === "admin" ? "bg-success" : "bg-secondary"}`}>
+          {userRole ?? "Cargando..."}
+        </span>
+      </p>
 
       {error && <p className="text-center text-danger">{error}</p>}
       {loading ? (
@@ -78,6 +113,7 @@ export const Products: React.FC = () => {
           products={products}
           fetchProducts={fetchProducts}
           setEditingProduct={setEditingProduct}
+          userRole={userRoleId}
         />
       )}
     </div>

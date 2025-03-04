@@ -38,9 +38,6 @@ export const NavBar = () => {
             {isAuthenticated ? (
               <>
                 <li className="nav-item">
-                  <a href="/" className="nav-link active">Inicio</a>
-                </li>
-                <li className="nav-item">
                   <a href="/products" className="nav-link active">Productos</a>
                 </li>
                 <li className="nav-item">
